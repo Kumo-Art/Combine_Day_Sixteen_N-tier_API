@@ -1,5 +1,6 @@
 
 
+using Combine_Day_Sixteen_N_tier_API.Dtos;
 using Combine_Day_Sixteen_N_tier_API.Models;
 using Combine_Day_Sixteen_N_tier_API.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ namespace Combine_Day_Sixteen_N_tier_API.Controllers
 
         [HttpGet("GetAll")]
 
-        public ActionResult<List<Supply>> GetAll()
+        public ActionResult<SupplyReadDTO> GetAll()
         {
             return Ok(_supplies.GetAll());
         }
@@ -29,9 +30,10 @@ namespace Combine_Day_Sixteen_N_tier_API.Controllers
 
         [HttpGet("GetById/{id}")]
 
-        public ActionResult<Supply> GetById(int id)
+        public ActionResult<SupplyReadDTO> GetById(int id)
         {
-            Supply? supply = _supplies.GetById(id);
+            //we are returning our DTO not our model because we dont want our location leaking
+            SupplyReadDTO? supply = _supplies.GetById(id);
 
 
             if(supply == null)
@@ -42,15 +44,16 @@ namespace Combine_Day_Sixteen_N_tier_API.Controllers
             return Ok(supply);
         }
 
+         //[APIController] checks the DTOs attributes [Required] and [Range] before the methods
         [HttpPost("Create")]
 
-        public ActionResult<Supply> Create([FromBody] Supply supply)
+        public ActionResult<SupplyReadDTO> Create([FromBody] SupplyReadDTO supply)
         {
-            Supply? created = _supplies.Create(supply);
+            SupplyReadDTO? created = _supplies.Create(supply);
 
             if(created is null)
             {
-                return BadRequest("A supply needs a name, and its Quantity must be greater than 0");
+                return Conflict($"There is already a supply called {supply.Name}");
             }
 
 
@@ -58,42 +61,42 @@ namespace Combine_Day_Sixteen_N_tier_API.Controllers
         }
         
 
-        [HttpPut("{id}/Withdraw/{amount}")]
+         [HttpPut("{id}/Withdraw/{amount}")]
 
-        public ActionResult<Supply> Withdraw(int id, int amount)
-        {
-            Supply? supply = _supplies.GetById(id);
+         public ActionResult<Supply> Withdraw(int id, int amount)
+         {
+             SupplyReadDTO? supply = _supplies.GetById(id);
 
-            if(supply == null)
-            {
-                return NotFound($"No supply with id {id}");
-            }
+             if(supply == null)
+             {
+                 return NotFound($"No supply with id {id}");
+             }
 
-            bool ok = _supplies.Withdraw(supply, amount);
+            bool ok = _supplies.Withdraw(id, amount);
 
             if(ok == false)
-            {
-                return BadRequest($"Can't withdraw {amount}. There are {supply.Quantity} on the shelf");
-            }
+             {
+                 return BadRequest($"Can't withdraw {amount}. There are {supply.Quantity} on the shelf");
+             }
 
 
             return Ok(supply);
-        }
+         }
 
-        [HttpDelete("Delete/{id}")]
+         [HttpDelete("Delete/{id}")]
 
-        public IActionResult Delete(int id)
-        {
-            Supply? supply = _supplies.GetById(id);
+         public IActionResult Delete(int id)
+         {
+              _supplies.GetById(id);
 
-            if(supply is null)
-            {
-                return NotFound($"No supply with id {id}.");
-            }
+             if(_supplies.GetById(id) is null)
+             {
+                 return NotFound($"No supply with id {id}.");
+             }
 
-            _supplies.Delete(supply);
-            return NoContent();
-        }
+             _supplies.Delete(id);
+             return NoContent();
+         }
           
         
     }

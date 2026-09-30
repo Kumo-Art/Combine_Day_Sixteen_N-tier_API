@@ -1,18 +1,19 @@
+using Combine_Day_Sixteen_N_tier_API.Dtos;
 using Combine_Day_Sixteen_N_tier_API.Models;
 
 namespace Combine_Day_Sixteen_N_tier_API.Services
 {
     public interface ISupplyServices
     {
-         List<Supply> GetAll();
+         List<SupplyReadDTO> GetAll();
 
-         Supply? GetById(int id);
+         SupplyReadDTO? GetById(int id);
 
-         Supply Create(Supply supply);
+         SupplyReadDTO Create(SupplyCreateDTO supply);
 
-         bool Withdraw(Supply supply, int amount); // false if there isnt enough
+         bool Withdraw(int id, int amount); // false if there isnt enough
 
 
-         void Delete(Supply supply);
+         void Delete(int id);
     }
 }
